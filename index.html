@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dungeon Master Canvas</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <div class="container">
+    <h1 class="text-3xl font-bold mb-4 text-center">Dungeon Master Canvas</h1>
+
+    <!-- Story Feed -->
+    <div id="story-feed" class="story-feed">
+      <!-- Story rounds will be dynamically added here -->
+    </div>
+
+    <!-- DM Controls -->
+    <div class="controls">
+      <h2 class="text-xl font-semibold">Players Present:</h2>
+      <div id="player-controls" class="player-controls">
+      </div>
+
+      <h2 class="text-xl font-semibold">DM's Turn:</h2>
+      <textarea id="dm-input" class="dm-input-area" placeholder="Enter DM prompt here..."></textarea>
+
+      <div class="action-buttons" id="action-buttons">
+        <button id="advance-all-btn" class="action-btn">Advance All Present Players</button>
+        <div id="loading-indicator" class="loader" style="display: none;"></div>
+      </div>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+
+</html>
