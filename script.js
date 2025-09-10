@@ -123,7 +123,11 @@ function addDMprompt(text, playersPresent) {
   roundDiv.classList.add('round-item', 'dm-prompt');
   roundDiv.dataset.roundType = 'dm';
   roundDiv.dataset.playersPresent = JSON.stringify(playersPresent);
-  roundDiv.innerHTML = `<span class="player-name-label">DM:</span><br>${text}`;
+  roundDiv.innerHTML = `<span class="player-name-label">DM:</span>`;
+  const storyDiv = document.createElement('div');
+  storyDiv.classList.add('story-text');
+  storyDiv.textContent = text;
+  roundDiv.appendChild(storyDiv);
   storyFeed.appendChild(roundDiv);
   storyFeed.scrollTop = storyFeed.scrollHeight;
 }
@@ -143,6 +147,7 @@ function addPlayerAction(player, text, playersPresent) {
   const contentSpan = document.createElement('div');
   contentSpan.contentEditable = true;
   contentSpan.classList.add('editable-text');
+  contentSpan.classList.add('story-text');
   contentSpan.textContent = text;
 
   roundDiv.innerHTML = `<span class="player-name-label">${player}:</span>`;
@@ -159,15 +164,10 @@ function getPlayerHistory(playerName) {
   storyElements.forEach(item => {
     const roundType = item.dataset.roundType;
 
-    if (roundType === 'dm') {
-      // DM prompts are only part of a player's history if they were present for that round
-      const playersPresent = JSON.parse(item.dataset.playersPresent || '[]');
-      if (playersPresent.includes(playerName)) {
-        history += `DM: ${item.textContent.replace('DM:', '').trim()}\n\n`;
-      }
-    } else if (roundType === 'player' && item.dataset.player === playerName) {
-      // A player's own actions are always part of their history
-      history += `${playerName}: ${item.querySelector('.editable-text').textContent.trim()}\n\n`;
+    const playersPresent = JSON.parse(item.dataset.playersPresent || '[]');
+    if (playersPresent.includes(playerName)) {
+      const storyContent = item.querySelector('.story-text').textContent.trim();
+      history += storyContent + "\n\n";
     }
   });
 

@@ -69,6 +69,10 @@ body {
   box-shadow: 0 0 0 2px #4299e1;
 }
 
+.story-text {
+  color: #00a;
+}
+
 /* Control panel styling */
 .controls {
   display: flex;
