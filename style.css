@@ -8,6 +8,8 @@ body {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  user-select: none;
+
 }
 
 .container {
@@ -40,12 +42,6 @@ body {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-.dm-prompt {
-  background-color: #3d3d3d;
-  border: 1px solid #666;
-  color: #f7f7f7;
-}
-
 .player-action {
   background-color: #4a4a4a;
   border: 1px solid #666;
@@ -70,7 +66,8 @@ body {
 }
 
 .story-text {
-  color: #00a;
+  color: #fff;
+  user-select: text;
 }
 
 /* Control panel styling */

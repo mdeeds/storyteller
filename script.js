@@ -33,11 +33,13 @@ async function advancePlayer(player, dmText, playersPresent) {
   const fullPrompt = getPlayerHistory(player);
   try {
     console.log(player);
-    const response = await callGeminiAPI(fullPrompt);
+    const response = await callGeminiAPI(
+      fullPrompt, getCharacterDescription(player));
     addPlayerAction(player, response, playersPresent);
   } catch (error) {
     console.error(`Error with Gemini API for ${player}:`, error);
-    addPlayerAction(player, "An error occurred with the AI response.");
+    addPlayerAction(player, "An error occurred with the AI response.",
+      []);
   }
 }
 
@@ -53,7 +55,7 @@ advanceAllBtn.addEventListener('click', async () => {
   loadingIndicator.style.display = 'block';
   advanceAllBtn.disabled = true;
 
-  addDMprompt(dmText, selectedPlayers);
+  addPlayerAction('DM', dmText, selectedPlayers);
   for (const player of selectedPlayers) {
     await advancePlayer(player, dmText, selectedPlayers);
   }
@@ -72,7 +74,7 @@ function makeButtons() {
       button.disabled = true;
       const dmText = dmInput.value.trim();
       const selectedPlayers = getSelectedPlayers();
-      addDMprompt(dmText, selectedPlayers);
+      addPlayerAction('DM', dmText, selectedPlayers);
       await advancePlayer(player, dmText, selectedPlayers);
       dmInput.value = '';
       button.disabled = false;
@@ -104,11 +106,8 @@ function filterStory() {
   const selectedPlayers = getSelectedPlayers();
   document.querySelectorAll('.round-item').forEach(item => {
     const playersPresent = JSON.parse(item.dataset.playersPresent || '[]');
-
     // Show the element if it's a DM prompt for the current players or a player action for a selected player
-    const shouldShow = (item.dataset.roundType === 'dm' && playersPresent.some(p => selectedPlayers.includes(p))) ||
-      (item.dataset.roundType === 'player' && selectedPlayers.includes(item.dataset.player));
-
+    const shouldShow = (playersPresent.some(p => selectedPlayers.includes(p)));
     if (shouldShow) {
       item.classList.remove('hidden-by-filter');
     } else {
@@ -117,43 +116,41 @@ function filterStory() {
   });
 }
 
-// Appends a new DM prompt to the story feed
-function addDMprompt(text, playersPresent) {
+// Creates a new round div and appends it to the story feed
+function createRoundDiv(player, playersPresent) {
+
   const roundDiv = document.createElement('div');
-  roundDiv.classList.add('round-item', 'dm-prompt');
-  roundDiv.dataset.roundType = 'dm';
+  roundDiv.classList.add('round-item');
   roundDiv.dataset.playersPresent = JSON.stringify(playersPresent);
-  roundDiv.innerHTML = `<span class="player-name-label">DM:</span>`;
-  const storyDiv = document.createElement('div');
-  storyDiv.classList.add('story-text');
-  storyDiv.textContent = text;
-  roundDiv.appendChild(storyDiv);
+
+  const nameLabel = document.createElement('span');
+  nameLabel.classList.add('player-name-label');
+  nameLabel.textContent = `${JSON.stringify(playersPresent)}`;
+  roundDiv.appendChild(nameLabel);
+
+  const contentSpan = document.createElement('div');
+  contentSpan.contentEditable = true;
+  contentSpan.classList.add('editable-text', 'story-text');
+  roundDiv.appendChild(contentSpan);
+
   storyFeed.appendChild(roundDiv);
   storyFeed.scrollTop = storyFeed.scrollHeight;
+
+  return roundDiv;
 }
 
 // Appends a new player action to the story feed
 function addPlayerAction(player, text, playersPresent) {
+  if (!text) { return; }
   if (!playersPresent) {
     console.error('Must pass playersPresent to addPlayerAction');
+    return; // Early exit if playersPresent is not provided
   }
-  const roundDiv = document.createElement('div');
-  roundDiv.classList.add('round-item', 'player-action');
-  roundDiv.dataset.roundType = 'player';
-  roundDiv.dataset.player = player;
-  roundDiv.dataset.playersPresent = JSON.stringify(playersPresent);
-
-  // Make the content editable
-  const contentSpan = document.createElement('div');
-  contentSpan.contentEditable = true;
-  contentSpan.classList.add('editable-text');
-  contentSpan.classList.add('story-text');
-  contentSpan.textContent = text;
-
-  roundDiv.innerHTML = `<span class="player-name-label">${player}:</span>`;
-  roundDiv.appendChild(contentSpan);
-  storyFeed.appendChild(roundDiv);
-  storyFeed.scrollTop = storyFeed.scrollHeight;
+  const roundDiv = createRoundDiv(player, playersPresent);
+  const storyDiv = roundDiv.querySelector('.story-text');
+  const oldText = storyDiv.textContent.trim();
+  const newText = text.trim();
+  storyDiv.textContent = oldText + "\n\n" + newText;;
 }
 
 // Constructs the history prompt for a specific player by reading the DOM
@@ -170,8 +167,6 @@ function getPlayerHistory(playerName) {
       history += storyContent + "\n\n";
     }
   });
-
-  history = getCharacterDescription(playerName) + "\n\n" + history;
 
   return history;
 }
@@ -200,7 +195,7 @@ function getCharacterDescription(playerName) {
 }
 
 // Call the Gemini API using native fetch
-async function callGeminiAPI(prompt) {
+async function callGeminiAPI(prompt, systemInstructions) {
   const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
 
   const payload = {
@@ -211,7 +206,10 @@ async function callGeminiAPI(prompt) {
       // "google_search": {}
       // "code_execution": {}
       // "google_maps": {}
-    }]
+    }],
+    system_instruction: {
+      parts: [{ text: systemInstructions }]
+    }
   };
 
   let response;
