@@ -118,7 +118,14 @@ function filterStory() {
 
 // Creates a new round div and appends it to the story feed
 function createRoundDiv(player, playersPresent) {
-
+  const lastRoundItem = storyFeed.lastElementChild;
+  if (lastRoundItem && lastRoundItem.classList.contains('round-item')) {
+    const lastPlayersPresent =
+      JSON.parse(lastRoundItem.dataset.playersPresent || '[]');
+    if (JSON.stringify(lastPlayersPresent) === JSON.stringify(playersPresent)) {
+      return lastRoundItem;
+    }
+  }
   const roundDiv = document.createElement('div');
   roundDiv.classList.add('round-item');
   roundDiv.dataset.playersPresent = JSON.stringify(playersPresent);
@@ -134,8 +141,6 @@ function createRoundDiv(player, playersPresent) {
   roundDiv.appendChild(contentSpan);
 
   storyFeed.appendChild(roundDiv);
-  storyFeed.scrollTop = storyFeed.scrollHeight;
-
   return roundDiv;
 }
 
@@ -151,6 +156,7 @@ function addPlayerAction(player, text, playersPresent) {
   const oldText = storyDiv.textContent.trim();
   const newText = text.trim();
   storyDiv.textContent = oldText + "\n\n" + newText;;
+  storyFeed.scrollTop = storyFeed.scrollHeight;
 }
 
 // Constructs the history prompt for a specific player by reading the DOM
