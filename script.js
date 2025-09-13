@@ -15,6 +15,7 @@ window.addEventListener('load', async () => {
   apiKey = await (await fetch('api.key')).text();
   console.log(`API Key: ${apiKey}`);
   makeButtons();
+  loadStoryFromFile('story.txt');
 });
 
 // --- Event Listeners ---
@@ -300,11 +301,6 @@ async function loadStoryFromFile(filename) {
     const storyText = await response.text();
     loadStoryFromString(storyText);
   } catch (error) {
-    console.error("Error loading story from file:", error);
+    loadStoryFromString("");
   }
 }
-
-// Call this to load your story.txt on page load
-window.addEventListener('load', () => {
-  loadStoryFromFile('story.txt');
-});
