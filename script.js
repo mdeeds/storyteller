@@ -29,17 +29,17 @@ playerControls.addEventListener('click', (event) => {
 });
 
 // Function to handle advancing a single player
-async function advancePlayer(player, dmText, playersPresent) {
+async function advancePlayer(player, playersPresent) {
   const fullPrompt = getPlayerHistory(player);
   try {
     console.log(player);
     const response = await callGeminiAPI(
       fullPrompt, getCharacterDescription(player));
-    addPlayerAction(player, response, playersPresent);
+    addPlayerAction(response, playersPresent);
   } catch (error) {
     console.error(`Error with Gemini API for ${player}:`, error);
-    addPlayerAction(player, "An error occurred with the AI response.",
-      []);
+    addPlayerAction("An error occurred with the AI response.",
+      playersPresent);
   }
 }
 
@@ -57,7 +57,7 @@ advanceAllBtn.addEventListener('click', async () => {
 
   addPlayerAction('DM', dmText, selectedPlayers);
   for (const player of selectedPlayers) {
-    await advancePlayer(player, dmText, selectedPlayers);
+    await advancePlayer(player, selectedPlayers);
   }
 
   dmInput.value = '';
@@ -75,7 +75,7 @@ function makeButtons() {
       const dmText = dmInput.value.trim();
       const selectedPlayers = getSelectedPlayers();
       addPlayerAction('DM', dmText, selectedPlayers);
-      await advancePlayer(player, dmText, selectedPlayers);
+      await advancePlayer(player, selectedPlayers);
       dmInput.value = '';
       button.disabled = false;
     });
@@ -117,7 +117,7 @@ function filterStory() {
 }
 
 // Creates a new round div and appends it to the story feed
-function createRoundDiv(player, playersPresent) {
+function createRoundDiv(playersPresent) {
   const lastRoundItem = storyFeed.lastElementChild;
   if (lastRoundItem && lastRoundItem.classList.contains('round-item')) {
     const lastPlayersPresent =
@@ -145,13 +145,13 @@ function createRoundDiv(player, playersPresent) {
 }
 
 // Appends a new player action to the story feed
-function addPlayerAction(player, text, playersPresent) {
+function addPlayerAction(text, playersPresent) {
   if (!text) { return; }
   if (!playersPresent) {
     console.error('Must pass playersPresent to addPlayerAction');
     return; // Early exit if playersPresent is not provided
   }
-  const roundDiv = createRoundDiv(player, playersPresent);
+  const roundDiv = createRoundDiv(playersPresent);
   const storyDiv = roundDiv.querySelector('.story-text');
   const oldText = storyDiv.textContent.trim();
   const newText = text.trim();
@@ -259,3 +259,52 @@ async function callGeminiAPI(prompt, systemInstructions) {
   }
   return "Failed to get a response after multiple retries.";
 }
+
+function loadStoryFromString(storyText) {
+  const lines = storyText.split('\n');
+  let currentPlayersPresent = [];
+  let currentContent = [];
+
+  const addRound = () => {
+    if (currentContent.length > 0) {
+      const roundDiv = createRoundDiv(currentPlayersPresent);
+      const storyDiv = roundDiv.querySelector('.story-text');
+      storyDiv.textContent = currentContent.join('\n');
+      storyFeed.appendChild(roundDiv);
+    }
+  };
+
+  for (const line of lines) {
+    const trimmedLine = line.trim();
+    if (trimmedLine.startsWith('[') && trimmedLine.endsWith(']')) {
+      addRound(); // Add the previous round before starting a new one
+      try {
+        currentPlayersPresent = JSON.parse(trimmedLine);
+        currentContent = [];
+      } catch (e) {
+        console.error("Error parsing players present JSON:", e);
+        currentPlayersPresent = [];
+      }
+    } else {
+      currentContent.push(trimmedLine);
+    }
+  }
+  addRound(); // Add the last round
+  filterStory(); // Apply filters after loading the story
+}
+
+// Example usage (you might call this from an event listener or on page load)
+async function loadStoryFromFile(filename) {
+  try {
+    const response = await fetch(filename);
+    const storyText = await response.text();
+    loadStoryFromString(storyText);
+  } catch (error) {
+    console.error("Error loading story from file:", error);
+  }
+}
+
+// Call this to load your story.txt on page load
+window.addEventListener('load', () => {
+  loadStoryFromFile('story.txt');
+});
