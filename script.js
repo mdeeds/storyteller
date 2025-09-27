@@ -56,7 +56,7 @@ advanceAllBtn.addEventListener('click', async () => {
   loadingIndicator.style.display = 'block';
   advanceAllBtn.disabled = true;
 
-  addPlayerAction('DM', dmText, selectedPlayers);
+  addPlayerAction(dmText, selectedPlayers);
   for (const player of selectedPlayers) {
     await advancePlayer(player, selectedPlayers);
   }
@@ -75,7 +75,7 @@ function makeButtons() {
       button.disabled = true;
       const dmText = dmInput.value.trim();
       const selectedPlayers = getSelectedPlayers();
-      addPlayerAction('DM', dmText, selectedPlayers);
+      addPlayerAction(dmText, selectedPlayers);
       await advancePlayer(player, selectedPlayers);
       dmInput.value = '';
       button.disabled = false;
