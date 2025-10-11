@@ -30,12 +30,11 @@ playerControls.addEventListener('click', (event) => {
 });
 
 // Function to handle advancing a single player
-async function advancePlayer(player, playersPresent) {
+async function advancePlayer(player, instruction, playersPresent) {
   const fullPrompt = getPlayerHistory(player);
   try {
     console.log(player);
-    const response = await callGeminiAPI(
-      fullPrompt, getCharacterDescription(player));
+    const response = await callGeminiAPI(fullPrompt, instruction, player);
     addPlayerAction(response, playersPresent);
   } catch (error) {
     console.error(`Error with Gemini API for ${player}:`, error);
@@ -58,7 +57,7 @@ advanceAllBtn.addEventListener('click', async () => {
 
   addPlayerAction(dmText, selectedPlayers);
   for (const player of selectedPlayers) {
-    await advancePlayer(player, selectedPlayers);
+    await advancePlayer(player, dmText, selectedPlayers);
   }
 
   dmInput.value = '';
@@ -75,8 +74,7 @@ function makeButtons() {
       button.disabled = true;
       const dmText = dmInput.value.trim();
       const selectedPlayers = getSelectedPlayers();
-      addPlayerAction(dmText, selectedPlayers);
-      await advancePlayer(player, selectedPlayers);
+      await advancePlayer(player, dmText, selectedPlayers);
       dmInput.value = '';
       button.disabled = false;
     });
@@ -179,43 +177,25 @@ function getPlayerHistory(playerName) {
 }
 
 // Hard-coded character descriptions
-const players = ['Sophia', 'Cayle', 'Beverly'];
-const descriptionMap = new Map();
-(async function () {
-  for (const player of players) {
-    const response = await fetch(`${player}.txt`);
-    descriptionMap.set(player, await response.text());
-  }
-})();
-
-function getPersonalDescription(playerName) {
-  if (descriptionMap.has(playerName)) {
-    return descriptionMap.get(playerName);
-  } else {
-    return "";
-  }
-}
-
-// Hard-coded character descriptions
-function getCharacterDescription(playerName) {
-  return getPersonalDescription(playerName);
-}
+const players = ['Sophia', 'Maria', 'Rhea', 'Chloe', 'Max', 'Liam'];
 
 // Call the Gemini API using native fetch
-async function callGeminiAPI(prompt, systemInstructions) {
+async function callGeminiAPI(prompt, instruction, name) {
   const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
 
   const payload = {
-    contents: [{
-      parts: [{ text: prompt }]
-    }],
-    tools: [{
-      // "google_search": {}
-      // "code_execution": {}
-      // "google_maps": {}
-    }],
+    contents: [
+      { role: "model", parts: [{ text: prompt }] },
+      {
+        role: "user", parts: [{
+          text:
+            `${instruction}\n` +
+            `Continue the story writing for ${name}`
+        }]
+      },
+    ],
     system_instruction: {
-      parts: [{ text: systemInstructions }]
+      parts: [{ text: `You are ${name}. Write in third person past tense for ${name}.` }]
     }
   };
 
