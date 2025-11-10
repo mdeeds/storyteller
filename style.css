@@ -30,7 +30,10 @@ body {
   flex-direction: column;
   gap: 16px;
   border: 1px solid #444;
+  font-family: inherit;
+  /* Ensure textarea uses the body font */
   white-space: pre-wrap;
+  color: #fff;
 }
 
 .round-item {
@@ -61,11 +64,6 @@ body {
 
 .editable-text:focus {
   box-shadow: 0 0 0 2px #4299e1;
-}
-
-.story-text {
-  color: #fff;
-  user-select: text;
 }
 
 /* Control panel styling */

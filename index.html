@@ -13,12 +13,8 @@
   <div class="container">
     <h1 class="text-3xl font-bold mb-4 text-center">Storyteller</h1>
 
-    <!-- Story Feed -->
-    <div id="story-feed" class="story-feed">
-      <!-- Story rounds will be dynamically added here -->
-    </div>
+    <textarea id="story-area" class="story-feed" placeholder="Your story will appear here..."></textarea>
 
-    <!-- Storyteller Controls -->
     <div class="controls">
       <h2 class="text-xl font-semibold">Players Present:</h2>
       <div id="player-controls" class="player-controls">
@@ -28,12 +24,12 @@
       <textarea id="dm-input" class="dm-input-area" placeholder="Enter DM prompt here..."></textarea>
 
       <div class="action-buttons" id="action-buttons">
-        <button id="advance-all-btn" class="action-btn">Advance All Present Players</button>
+        <button id="submit-btn" class="action-btn">Submit</button>
         <div id="loading-indicator" class="loader" style="display: none;"></div>
       </div>
     </div>
   </div>
-  <script src="script.js"></script>
+  <script src="script.js" type="module"></script>
 </body>
 
 </html>
