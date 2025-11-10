@@ -10,7 +10,11 @@ export class GeminiAPI {
    */
   static async loadApiKey(path = 'api.key') {
     try {
-      this.apiKey = await (await fetch(path)).text();
+      const response = await fetch(path);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch API key with status ${response.status}: ${response.statusText}`);
+      }
+      this.apiKey = (await response.text()).trim();
       console.log(`API Key loaded.`);
     } catch (error) {
       console.error("Could not load API key from file:", path, error);
@@ -19,7 +23,11 @@ export class GeminiAPI {
 
   static async loadSystemInstruction(path = 'system-instruction.txt') {
     try {
-      this._systemInstruction = await (await fetch(path)).text();
+      const response = await fetch(path);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch system instruction with status ${response.status}: ${response.statusText}`);
+      }
+      this._systemInstruction = await response.text();
       console.log(`System instruction loaded.`);
     } catch (error) {
       console.error("Could not load system instruction from file:", path, error);
